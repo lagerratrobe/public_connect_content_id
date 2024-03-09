@@ -7,20 +7,21 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-
-library(connectapi)
-library(dplyr)
 ```
 
-```{r get_info, echo=FALSE}
+### Connect server info:
+```{r, echo=FALSE}
 
 # Access a Connect server and get info about published content
 
-library(connectapi)
-library(dplyr)
+library(connectapi, warn.conflicts = FALSE)
+library(dplyr, warn.conflicts = FALSE)
 
-client <- connect()
+suppressWarnings( client <- connect() )
+```
 
+
+```{r get_content_info, echo=FALSE}
 # get all content
 all_content <- get_content(client, limit = Inf)
 all_content <- 
@@ -50,9 +51,16 @@ all_content <-
 ## quarto-shiny
 ## python-bokeh
 ## tensorflow-saved-model
+```
+### Current list of all published content types:
+```{r get_all_types, echo=FALSE}
 
-cat(unique(all_content$app_mode), sep = "\n")
+all_types <- unique(all_content$app_mode)
 
+cat(unique(sort(all_types)), sep = "\n")
+```
+
+```{r get_info, echo=FALSE}
 owner_list <- data.frame()
 
 for (i in 1:nrow(all_content)) {
@@ -67,10 +75,21 @@ all_content <- all_content |> select(-owner)
 
 public_content <- 
   filter(all_content, access_type == "all")
+```
 
+### Current list of "public" Interactive content
+
+```{r get_public_interactive, echo=FALSE}
 public_content |> 
+  filter( !grepl("static", app_mode) ) |>
   select(name, owner_name, app_mode) |>
   print()
+```
 
-
+### Current list of "public" Static content
+```{r get_public_static, echo=FALSE}
+public_content |> 
+  filter( grepl("static", app_mode) ) |>
+  select(name, owner_name, app_mode) |>
+  print()
 ```
