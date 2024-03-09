@@ -1,0 +1,76 @@
+---
+title: "ID Public Content"
+author: "Roger Andre"
+date: "2024-03-08"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(connectapi)
+library(dplyr)
+```
+
+```{r get_info, echo=FALSE}
+
+# Access a Connect server and get info about published content
+
+library(connectapi)
+library(dplyr)
+
+client <- connect()
+
+# get all content
+all_content <- get_content(client, limit = Inf)
+all_content <- 
+  all_content %>% 
+  select(guid, 
+         name, 
+         access_type, 
+         created_time, 
+         app_mode, 
+         owner)
+
+# Get the unique content types currently on the system
+## rmd-static
+## static
+## quarto-static
+## shiny
+## python-shiny
+## unknown
+## jupyter-voila
+## jupyter-static
+## python-api
+## python-fastapi
+## python-dash
+## api
+## python-streamlit
+## rmd-shiny
+## quarto-shiny
+## python-bokeh
+## tensorflow-saved-model
+
+cat(unique(all_content$app_mode), sep = "\n")
+
+owner_list <- data.frame()
+
+for (i in 1:nrow(all_content)) {
+  owner_name <- all_content[i,]$owner[[1]]$username
+  owner_guid <- all_content[i,]$owner[[1]]$guid
+  owner_info <- list("owner_name" = owner_name, "owner_guid" = owner_guid)
+  owner_list <- rbind(owner_list, owner_info)
+}
+
+all_content <- cbind(all_content, owner_list)
+all_content <- all_content |> select(-owner)
+
+public_content <- 
+  filter(all_content, access_type == "all")
+
+public_content |> 
+  select(name, owner_name, app_mode) |>
+  print()
+
+
+```
